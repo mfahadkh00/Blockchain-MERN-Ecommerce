@@ -185,10 +185,10 @@ contract Store {
         uint256 _rating,
         string memory _review
     ) public {
-        // require(
-        //     !userList[msg.sender].isUser,
-        //     "Store: addReview - User does not exist"
-        // );
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
 
         // require(
         //     _rating < 0 || _rating > 5,
@@ -241,10 +241,10 @@ contract Store {
         OrderProduct[] memory _products,
         string memory _shippingDet
     ) public {
-        // require(
-        //     userList[msg.sender].id == address(0),
-        //     "Store: addOrder - User does not exist"
-        // );
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
 
         uint256 total = 0;
         // for (uint256 i = 0; i < _products.length; i++) {
