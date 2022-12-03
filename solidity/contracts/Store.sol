@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 contract Store {
     struct User {
         address id;
-        string email;
+        bytes32 email;
         string name;
         string billingAdd;
         bytes32 password;
@@ -98,7 +98,7 @@ contract Store {
 
         userList[msg.sender] = User(
             msg.sender,
-            _email,
+            keccak256(abi.encode(_email)),
             _name,
             _billingAdd,
             keccak256(abi.encode(_password, msg.sender)),
@@ -113,7 +113,7 @@ contract Store {
         return userList[msg.sender];
     }
 
-    function authenticateUser(string memory _password)
+    function authenticateUser(string memory _email, string memory _password)
         public
         view
         returns (bool)
@@ -123,9 +123,9 @@ contract Store {
             "Store: authenticateUser - User does not exist"
         );
 
-        return
+        return (userList[msg.sender].email == keccak256(abi.encode(_email)) &&
             userList[msg.sender].password ==
-            keccak256(abi.encode(_password, msg.sender));
+            keccak256(abi.encode(_password, msg.sender)));
     }
 
     function addProduct(

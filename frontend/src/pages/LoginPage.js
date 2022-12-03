@@ -118,8 +118,9 @@ const LoginPage = ({ location, history }) => {
 		e.preventDefault();
 		// dispatch(loginUser(email, password));
 		try {
-			const getUser = await contract?.getUser()?.call();
-			console.log('getUser', getUser);
+			const authUser = await contract?.authenticateUser(email, password);
+			console.log('authuser: ', authUser);
+			localStorage.setItem('authenticated', authUser)
 		}
 		catch (e) {
 			console.log('error', e);
