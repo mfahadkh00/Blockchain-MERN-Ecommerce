@@ -85,21 +85,6 @@ contract Store {
         );
     }
 
-    function stringToBytes32(string memory source)
-        public
-        pure
-        returns (bytes32 result)
-    {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
-
-        assembly {
-            result := mload(add(source, 32))
-        }
-    }
-
     function addUser(
         string memory _email,
         string memory _name,
@@ -165,6 +150,11 @@ contract Store {
     }
 
     function getProduct(uint256 prodID) public view returns (Product memory) {
+        require(
+            prodID >= 0 && prodID <= productCount,
+            "Store: getProduct - Invalid product ID"
+        );
+
         // emit ProductReturned(prodID, productList[prodID].name);
         return productList[prodID];
     }
@@ -190,20 +180,20 @@ contract Store {
             "Store: authenticateUser - User does not exist"
         );
 
-        // require(
-        //     _rating < 0 || _rating > 5,
-        //     "Store: addReview - Rating should be between 0 and 5"
-        // );
+        require(
+            _rating > 0 && _rating < 6,
+            "Store: addReview - Rating should be between 1 and 5"
+        );
 
-        // require(
-        //     _productId < 0 || _productId > productCount,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: addReview - Product does not exist"
+        );
 
-        // require(
-        //     productList[_productId].id != _productId,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            productList[_productId].id == _productId,
+            "Store: addReview - Product does not exist"
+        );
 
         reviewList[_productId][productList[_productId].reviewCount] = Review(
             msg.sender,
@@ -225,6 +215,11 @@ contract Store {
         view
         returns (Review[] memory)
     {
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: getReviews - Product does not exist"
+        );
+
         Review[] memory reviews = new Review[](
             productList[_productId].reviewCount
         );
@@ -247,22 +242,23 @@ contract Store {
         );
 
         uint256 total = 0;
-        // for (uint256 i = 0; i < _products.length; i++) {
-        //     require(
-        //         _products[i].id < 0 || _products[i].id > productCount,
-        //         "Store: addOrder - Product does not exist"
-        //     );
 
-        //     require(
-        //         productList[_products[i].id].id != _products[i].id,
-        //         "Store: addOrder - Product does not exist"
-        //     );
+        for (uint256 i = 0; i < _products.length; i++) {
+            require(
+                _products[i].id >= 0 && _products[i].id <= productCount,
+                "Store: addOrder - Product does not exist"
+            );
 
-        //     require(
-        //         productList[_products[i].quantity].quantity == 0,
-        //         "Store: addOrder - Product out of stock"
-        //     );
-        // }
+            require(
+                productList[_products[i].id].id == _products[i].id,
+                "Store: addOrder - Product does not exist"
+            );
+
+            require(
+                productList[_products[i].id].quantity > 0,
+                "Store: addOrder - Product out of stock"
+            );
+        }
 
         for (uint256 i = 0; i < _products.length; i++) {
             productList[_products[i].id].quantity -= _products[i].quantity;
