@@ -17,6 +17,8 @@ const PlaceOrderPage = ({ history }) => {
 
   const orderCreate = useSelector((state) => state.orderCreate)
   const { order, loading, success, error } = orderCreate
+  const contract = useSelector((state) => state?.blockchainData?.contract)
+  const sender = useSelector((state) => state?.blockchainData?.userAccount)
 
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
@@ -52,47 +54,42 @@ const PlaceOrderPage = ({ history }) => {
 
   // All prices, tax is randomly  assigned
   cart.itemsPrice = cartItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
+    (acc, item) => acc + item.price * item.quantity,
     0,
   )
+  cart.totalPrice = cart.itemsPrice // + cart.taxPrice + cart.shippingPrice
 
-  cart.shippingPrice = cart.itemsPrice > 8000 ? 500 : 300
-  cart.taxPrice = 0.18 * cart.itemsPrice
-  cart.totalPrice = cart.itemsPrice + cart.taxPrice + cart.shippingPrice
-
-  const handleOrder = (e) => {
-    e.preventDefault()
+  const handleOrder = async () => {
+    // try {
+    // e.preventDefault()
     let payload = {
       products: cartItems.map((item) => {
         return {
-          id: item.product,
+          id: parseInt(item.id),
           quantity: item.quantity,
         }
       }),
-      shippingDetail:
-        shippingAddress.address +
-        ', ' +
-        shippingAddress.city +
-        ', ' +
-        shippingAddress.country +
-        ', ' +
-        shippingAddress.postalCode,
     }
+    let shippingDetail =
+      shippingAddress.address +
+      ', ' +
+      shippingAddress.city +
+      ', ' +
+      shippingAddress.country +
+      ', ' +
+      shippingAddress.postalCode
     console.log('order payload: ', payload)
-    dispatch(
-      createOrder({
-        payload,
-      }),
-    )
+
+    let resp = await contract.addOrder(payload, shippingDetail, {
+      from: sender,
+    })
+    console.log('🚀 ~ file: PlaceOrderPage.js:84 ~ handleOrder ~ resp', resp)
+    // } catch (e) {
+    //   console.log(e)
+    // }
     // dispatch(
     //   createOrder({
-    //     orderItems: cartItems,
-    //     shippingAddress,
-    //     paymentMethod,
-    //     itemsPrice: cart.itemsPrice,
-    //     shippingPrice: cart.shippingPrice,
-    //     taxPrice: cart.taxPrice,
-    //     totalPrice: cart.totalPrice,
+    //     payload,
     //   }),
     // )
   }
@@ -132,24 +129,27 @@ const PlaceOrderPage = ({ history }) => {
                             <Col md={2}>
                               <Image
                                 className="product-image"
-                                src={item.image}
+                                src={item.imgUrl}
                                 alt={item.name}
                                 fluid
                                 rounded
                               />
                             </Col>
                             <Col>
-                              <Link to={`/product/${item.product}`}>
+                              <Link to={`/product/${item.id}`}>
                                 {item.name}
                               </Link>
                             </Col>
                             <Col md={4}>
-                              {item.qty} x {item.price} ={' '}
-                              {(item.qty * item.price).toLocaleString('en-PK', {
-                                maximumFractionDigits: 2,
-                                style: 'currency',
-                                currency: 'PKR',
-                              })}
+                              {item.quantity} x {item.price} ={' '}
+                              {(item.quantity * item.price).toLocaleString(
+                                'en-PK',
+                                {
+                                  maximumFractionDigits: 2,
+                                  style: 'currency',
+                                  currency: 'PKR',
+                                },
+                              )}
                             </Col>
                           </Row>
                         </ListGroup.Item>
@@ -187,25 +187,12 @@ const PlaceOrderPage = ({ history }) => {
                         <strong>Shipping</strong>
                       </Col>
                       <Col>
-                        {Number(cart.shippingPrice).toLocaleString('en-PK', {
+                        Free
+                        {/* {Number(cart.shippingPrice).toLocaleString('en-PK', {
                           maximumFractionDigits: 2,
                           style: 'currency',
                           currency: 'PKR',
-                        })}
-                      </Col>
-                    </Row>
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <Row>
-                      <Col>
-                        <strong>Tax</strong>
-                      </Col>
-                      <Col>
-                        {Number(cart.taxPrice).toLocaleString('en-PK', {
-                          maximumFractionDigits: 2,
-                          style: 'currency',
-                          currency: 'PKR',
-                        })}
+                        })} */}
                       </Col>
                     </Row>
                   </ListGroup.Item>
@@ -235,7 +222,9 @@ const PlaceOrderPage = ({ history }) => {
                       type="button"
                       size="lg"
                       disabled={!cartItems.length}
-                      onClick={handleOrder}
+                      onClick={() => {
+                        handleOrder()
+                      }}
                     >
                       Place Order
                     </Button>

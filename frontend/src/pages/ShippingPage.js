@@ -32,19 +32,11 @@ const ShippingPage = ({ history }) => {
 			: dispatch(getUserDetails('profile'));
 	}, [userInfo, dispatch]);
 
-	// update access token to a new ine using the refresh tokens
 	useEffect(() => {
-		if (error && userInfo && !userInfo.isSocialLogin) {
-			const user = JSON.parse(localStorage.getItem('userInfo'));
-			user && dispatch(refreshLogin(user.email));
-		}
-	}, [error, dispatch, userInfo]);
-
-	useEffect(() => {
-		if (!(cartItems.length && userInfo)) {
+		if (!(cartItems.length)) {
 			history.push('/');
 		}
-	}, [cartItems, history, userInfo]);
+	}, [cartItems, history]);
 
 	// save shipping address and move to payment screen
 	const handleSubmit = (e) => {
@@ -57,7 +49,7 @@ const ShippingPage = ({ history }) => {
 				country,
 			})
 		);
-		history.push('/payment');
+		history.push('/placeorder');
 	};
 
 	return (

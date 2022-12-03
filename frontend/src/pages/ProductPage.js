@@ -23,7 +23,7 @@ const ProductPage = ({ history, match }) => {
   const [rating, setRating] = useState(0)
   const [review, setReview] = useState('')
   const [allReviews, setAllReviews] = useState([])
-  const [showReviewForm, setShowReviewForm] = useState(false) // bool to decide whether to show the review form or not
+  const [showReviewForm, setShowReviewForm] = useState(true) // bool to decide whether to show the review form or not
   const dispatch = useDispatch()
 
   const productDetails = useSelector((state) => state.productDetails)
