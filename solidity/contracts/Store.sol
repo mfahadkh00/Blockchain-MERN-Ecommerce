@@ -8,7 +8,7 @@ contract Store {
         string email;
         string name;
         string billingAdd;
-        string password;
+        bytes32 password;
         uint256 orderCount;
         bool isUser;
     }
@@ -47,10 +47,10 @@ contract Store {
     mapping(address => mapping(uint256 => mapping(uint256 => Product))) orderProductList;
 
     // Mappings for handling product functionalities
-    mapping(uint256 => Product) public productList;
+    mapping(uint256 => Product) productList;
     mapping(uint256 => mapping(uint256 => Review)) reviewList;
 
-    uint256 public productCount = 0;
+    uint256 productCount = 0;
 
     event UserAdded(address, string);
     event ProductAdded(uint256, string);
@@ -101,7 +101,7 @@ contract Store {
             _email,
             _name,
             _billingAdd,
-            _password,
+            keccak256(abi.encode(_password, msg.sender)),
             0,
             true
         );
@@ -111,6 +111,21 @@ contract Store {
 
     function getUser() public view returns (User memory) {
         return userList[msg.sender];
+    }
+
+    function authenticateUser(string memory _password)
+        public
+        view
+        returns (bool)
+    {
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
+
+        return
+            userList[msg.sender].password ==
+            keccak256(abi.encode(_password, msg.sender));
     }
 
     function addProduct(
@@ -135,6 +150,11 @@ contract Store {
     }
 
     function getProduct(uint256 prodID) public view returns (Product memory) {
+        require(
+            prodID >= 0 && prodID <= productCount,
+            "Store: getProduct - Invalid product ID"
+        );
+
         // emit ProductReturned(prodID, productList[prodID].name);
         return productList[prodID];
     }
@@ -155,25 +175,25 @@ contract Store {
         uint256 _rating,
         string memory _review
     ) public {
-        // require(
-        //     !userList[msg.sender].isUser,
-        //     "Store: addReview - User does not exist"
-        // );
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
 
-        // require(
-        //     _rating < 0 || _rating > 5,
-        //     "Store: addReview - Rating should be between 0 and 5"
-        // );
+        require(
+            _rating > 0 && _rating < 6,
+            "Store: addReview - Rating should be between 1 and 5"
+        );
 
-        // require(
-        //     _productId < 0 || _productId > productCount,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: addReview - Product does not exist"
+        );
 
-        // require(
-        //     productList[_productId].id != _productId,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            productList[_productId].id == _productId,
+            "Store: addReview - Product does not exist"
+        );
 
         reviewList[_productId][productList[_productId].reviewCount] = Review(
             msg.sender,
@@ -195,6 +215,11 @@ contract Store {
         view
         returns (Review[] memory)
     {
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: getReviews - Product does not exist"
+        );
+
         Review[] memory reviews = new Review[](
             productList[_productId].reviewCount
         );
@@ -211,28 +236,29 @@ contract Store {
         OrderProduct[] memory _products,
         string memory _shippingDet
     ) public {
-        // require(
-        //     userList[msg.sender].id == address(0),
-        //     "Store: addOrder - User does not exist"
-        // );
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
 
         uint256 total = 0;
-        // for (uint256 i = 0; i < _products.length; i++) {
-        //     require(
-        //         _products[i].id < 0 || _products[i].id > productCount,
-        //         "Store: addOrder - Product does not exist"
-        //     );
 
-        //     require(
-        //         productList[_products[i].id].id != _products[i].id,
-        //         "Store: addOrder - Product does not exist"
-        //     );
+        for (uint256 i = 0; i < _products.length; i++) {
+            require(
+                _products[i].id >= 0 && _products[i].id <= productCount,
+                "Store: addOrder - Product does not exist"
+            );
 
-        //     require(
-        //         productList[_products[i].quantity].quantity == 0,
-        //         "Store: addOrder - Product out of stock"
-        //     );
-        // }
+            require(
+                productList[_products[i].id].id == _products[i].id,
+                "Store: addOrder - Product does not exist"
+            );
+
+            require(
+                productList[_products[i].id].quantity > 0,
+                "Store: addOrder - Product out of stock"
+            );
+        }
 
         for (uint256 i = 0; i < _products.length; i++) {
             productList[_products[i].id].quantity -= _products[i].quantity;
