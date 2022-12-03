@@ -25,6 +25,7 @@ import { refreshLogin, getUserDetails } from '../actions/userActions'
 import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
 import getDateString from '../utils/getDateString'
 import '../styles/product-page.css'
+import { addItem } from '../actions/cartActions'
 
 const ProductPage = ({ history, match }) => {
   const [quantity, setQuantity] = useState(1)
@@ -134,6 +135,7 @@ const ProductPage = ({ history, match }) => {
   }, [product])
 
   const handleAddToCart = (e) => {
+    dispatch(addItem(product, quantity))
     history.push(`/cart/${match.params.id}?qty=${quantity}`)
   }
 

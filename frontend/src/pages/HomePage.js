@@ -21,29 +21,36 @@ const HomePage = ({ match, history }) => {
   const keyword = match.params.keyword // to search for products
   const pageNumber = Number(match.params.pageNumber) || 1 // current page number in the paginated display
   const [promptVerfication, setPromptVerification] = useState(false) // prompt user to verify email if not yet confirmed
-  const [products, setProducts] = useState(null)
+  // const [products, setProducts] = useState(null)
   const [productAvailable, setProductAvailable] = useState(false)
   const dispatch = useDispatch()
 
   // get the products list, userinfo and user details form the redix store
-  const productList = useSelector((state) => state.productList)
-  let { loading, error, pages } = productList
+  const products = useSelector((state) => state?.blockchainData?.products)
+  console.log('🚀 ~ file: HomePage.js:30 ~ HomePage ~ productList', products)
+  // const temp = useSelector((state) => state?.productsList)
+
+  // let { loading, error, pages } = temp
+  let loading = false
+  let error = false
+  let pages = null
 
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
 
   const userDetails = useSelector((state) => state.userDetails)
-  const contract = useSelector((state) => state.blockchain.contract)
+  const contract = useSelector((state) => state?.blockchainData?.contract)
   const { error: userInfoError } = userDetails
 
   const getProducts = async () => {
     let prods = await loadProducts(contract)
     dispatch(listProducts(prods))
   }
-  useEffect(() => {
-    // loadProducts(contract)
-    getProducts()
-  }, [])
+  // useEffect(() => {
+  //   // loadProducts(contract)
+  //   console.log("here")
+  //   getProducts()
+  // }, [])
 
   // fetch the user details
   useEffect(() => {
@@ -70,11 +77,11 @@ const HomePage = ({ match, history }) => {
   }, [products])
 
   // fetch products from redux store into local state
-  useEffect(() => {
-    if (productList) {
-      if (productList.products) setProducts([...productList.products])
-    }
-  }, [productList])
+  // useEffect(() => {
+  //   if (productList) {
+  //     if (productList.products) setProducts([...productList.products])
+  //   }
+  // }, [productList])
 
   // list products based on keyword and pagenumber
   // useEffect(() => {
@@ -113,11 +120,7 @@ const HomePage = ({ match, history }) => {
         </Message>
       ) : null}
 
-      {error ? (
-        <Message dismissible variant="danger" duration={10}>
-          {error}
-        </Message>
-      ) : !loading && products ? (
+      {products ? (
         <>
           <Row>
             {products?.length
@@ -140,12 +143,6 @@ const HomePage = ({ match, history }) => {
                   </Col>
                 )}
           </Row>
-          <Paginate
-            className="mt-auto text-center"
-            page={pageNumber}
-            keyword={keyword ? keyword : ''}
-            pages={pages}
-          />
         </>
       ) : (
         loading &&

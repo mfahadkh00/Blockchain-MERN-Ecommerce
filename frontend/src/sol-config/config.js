@@ -20,7 +20,7 @@ const refineData = (data) => {
   //     string imgUrl;
   //     uint256[] reviewIDs;
   let arr = []
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0; i < data?.length; i++) {
     // data[i].id = data[i]?.id?.toNumber()
     // // data[i].name = data[i]?.name
     // data[i].price = data[i]?.price?.toNumber()
@@ -46,7 +46,7 @@ export const loadProducts = async (contract, account) => {
   // console.log('IN LOAD PRODUCTS contract', contract)
 
   // try {
-  const productList = await contract.getProductList()
+  const productList = await contract?.getProductList()
   // console.log(
   //   '🚀 ~ file: config.js:46 ~ loadProducts ~ productList',
   //   productList,

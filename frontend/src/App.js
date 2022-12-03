@@ -57,7 +57,7 @@ const App = () => {
           initializeBlockchain({
             account: e.addressAccount,
             contract: e.contract,
-            // balance: accounts[0].getBalance()
+            products: e.productList,
           }),
         )
         dispatch(listProducts(e.productList))
