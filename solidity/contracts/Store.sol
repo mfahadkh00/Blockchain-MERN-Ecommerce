@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <=0.8.17;
-
 pragma experimental ABIEncoderV2;
 
 contract Store {
@@ -11,6 +10,7 @@ contract Store {
         string billingAdd;
         string password;
         uint256 orderCount;
+        bool isUser;
     }
 
     struct Product {
@@ -47,10 +47,10 @@ contract Store {
     mapping(address => mapping(uint256 => mapping(uint256 => Product))) orderProductList;
 
     // Mappings for handling product functionalities
-    mapping(uint256 => Product) productList;
+    mapping(uint256 => Product) public productList;
     mapping(uint256 => mapping(uint256 => Review)) reviewList;
 
-    uint256 productCount = 0;
+    uint256 public productCount = 0;
 
     event UserAdded(address, string);
     event ProductAdded(uint256, string);
@@ -91,10 +91,10 @@ contract Store {
         string memory _billingAdd,
         string memory _password
     ) public {
-        // require(
-        //     userList[msg.sender].id == msg.sender,
-        //     "Store: addUser - User already exists"
-        // );
+        require(
+            !userList[msg.sender].isUser,
+            "Store: addUser - User already exists"
+        );
 
         userList[msg.sender] = User(
             msg.sender,
@@ -102,7 +102,8 @@ contract Store {
             _name,
             _billingAdd,
             _password,
-            0
+            0,
+            true
         );
 
         emit UserAdded(msg.sender, _username);
@@ -133,8 +134,8 @@ contract Store {
         emit ProductAdded(productCount, _name);
     }
 
-    function getProduct(uint256 prodID) public returns (Product memory) {
-        emit ProductReturned(prodID, productList[prodID].name);
+    function getProduct(uint256 prodID) public view returns (Product memory) {
+        // emit ProductReturned(prodID, productList[prodID].name);
         return productList[prodID];
     }
 
@@ -155,7 +156,7 @@ contract Store {
         string memory _review
     ) public {
         // require(
-        //     userList[msg.sender].id == address(0),
+        //     !userList[msg.sender].isUser,
         //     "Store: addReview - User does not exist"
         // );
 
@@ -189,7 +190,11 @@ contract Store {
         );
     }
 
-    function getReviews(uint256 _productId) public view returns (Review[] memory) {
+    function getReviews(uint256 _productId)
+        public
+        view
+        returns (Review[] memory)
+    {
         Review[] memory reviews = new Review[](
             productList[_productId].reviewCount
         );
@@ -262,7 +267,7 @@ contract Store {
         );
     }
 
-    function getOrders() public view returns(Order[] memory) {
+    function getOrders() public view returns (Order[] memory) {
         Order[] memory _orders = new Order[](userList[msg.sender].orderCount);
 
         for (uint256 i = 0; i < userList[msg.sender].orderCount; i++) {
