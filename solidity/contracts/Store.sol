@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 contract Store {
     struct User {
         address id;
-        string username;
+        string email;
         string name;
         string billingAdd;
         string password;
@@ -86,10 +86,10 @@ contract Store {
     }
 
     function addUser(
-        string memory _username,
+        string memory _email,
         string memory _name,
-        string memory _billingAdd,
-        string memory _password
+        string memory _password,
+        string memory _billingAdd
     ) public {
         require(
             !userList[msg.sender].isUser,
@@ -98,7 +98,7 @@ contract Store {
 
         userList[msg.sender] = User(
             msg.sender,
-            _username,
+            _email,
             _name,
             _billingAdd,
             _password,
@@ -106,7 +106,7 @@ contract Store {
             true
         );
 
-        emit UserAdded(msg.sender, _username);
+        emit UserAdded(msg.sender, _email);
     }
 
     function getUser() public view returns (User memory) {

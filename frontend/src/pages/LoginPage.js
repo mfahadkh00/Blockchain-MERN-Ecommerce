@@ -33,6 +33,9 @@ const LoginPage = ({ location, history }) => {
 	const { loading, userInfo, error } = userLogin;
 	const storedInfo = JSON.parse(localStorage.getItem('userInfo'));
 
+	const contract = useSelector((state) => state?.blockchainData?.contract);
+
+
 	useEffect(() => {
 		if (!location.search.includes('success') && userInfo)
 			history.push(redirect);
@@ -152,9 +155,16 @@ const LoginPage = ({ location, history }) => {
 	};
 
 	// login user from email and password
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		dispatch(loginUser(email, password));
+		// dispatch(loginUser(email, password));
+		try {
+			const getUser = await contract?.getUser()?.call();
+			console.log('getUser', getUser);
+		}
+		catch (e) {
+			console.log('error', e);
+		}
 	};
 
 	// to send a mail for resetting password if forgotted

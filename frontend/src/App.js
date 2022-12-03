@@ -49,7 +49,7 @@ const App = () => {
       }
       const web3 = new Web3(App.web3Provider)
       await blockchainLoader(web3).then((e) => {
-        // console.log('Account: ', e.addressAccount)
+        console.log('Account: ', e.addressAccount)
         // console.log('Contract: ', e.contract)
         // console.log('Products: ', e.productList)
 

@@ -13,6 +13,7 @@ import Message from '../components/Message';
 import FormContainer from '../components/FormContainer';
 import { registerUser } from '../actions/userActions';
 import '../styles/login-register.css';
+import { loadAccount } from '../sol-config/config';
 
 const RegisterPage = ({ location, history }) => {
 	const [typePassword, setTypePassword] = useState('password');
@@ -28,6 +29,10 @@ const RegisterPage = ({ location, history }) => {
 	const redirect = location.search ? location.search.split('=')[1] : '';
 	const userRegister = useSelector((state) => state.userRegister);
 	const { loading, userInfo, error } = userRegister;
+	const contract = useSelector((state) => state?.blockchainData?.contract)
+
+	// const address = useSelector((state) => state?.blockchainData?.address)
+	// console.log('address: ', address);
 
 	useEffect(() => {
 		if (userInfo) {
@@ -49,12 +54,21 @@ const RegisterPage = ({ location, history }) => {
 		);
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (password !== confirmPassword) {
 			setMessage('Passwords do not match. Please retry.');
 		} else {
 			dispatch(registerUser(name, email, password));
+			console.log( email, name, password, contract?.address);
+
+			try {
+				const addUser = await contract?.addUser(email, name, password, "details", {from: "0xed489f7587d9c042bbb3f7e0f299f82f0913671e"});
+				console.log('addUser', addUser);
+			} catch (error) {
+				console.log('error', error);
+			}
+
 		}
 	};
 
@@ -113,7 +127,7 @@ const RegisterPage = ({ location, history }) => {
 									placeholder='Enter Email Address'
 									type='email'
 									value={email}
-									onChange={(e) => setEmail(e.target.value)}
+									onChange={(e) => setEmail(e.target.value.toLowerCase())}
 								/>
 							</FloatingLabel>
 						</Form.Group>
