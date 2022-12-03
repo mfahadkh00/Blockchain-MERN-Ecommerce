@@ -8,7 +8,7 @@ contract Store {
         string email;
         string name;
         string billingAdd;
-        string password;
+        bytes32 password;
         uint256 orderCount;
         bool isUser;
     }
@@ -85,6 +85,21 @@ contract Store {
         );
     }
 
+    function stringToBytes32(string memory source)
+        public
+        pure
+        returns (bytes32 result)
+    {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
     function addUser(
         string memory _email,
         string memory _name,
@@ -101,7 +116,7 @@ contract Store {
             _email,
             _name,
             _billingAdd,
-            _password,
+            keccak256(abi.encode(_password, msg.sender)),
             0,
             true
         );
@@ -111,6 +126,21 @@ contract Store {
 
     function getUser() public view returns (User memory) {
         return userList[msg.sender];
+    }
+
+    function authenticateUser(string memory _password)
+        public
+        view
+        returns (bool)
+    {
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
+
+        return
+            userList[msg.sender].password ==
+            keccak256(abi.encode(_password, msg.sender));
     }
 
     function addProduct(
