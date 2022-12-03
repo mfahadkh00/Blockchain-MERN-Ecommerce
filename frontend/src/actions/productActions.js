@@ -33,7 +33,7 @@ export const listProducts =
       // const { data } = await axios.get(
       // 	`/api/products?keyword=${keyword}&pageNumber=${pageNumber}&pageSize=${pageSize}`
       // );
-      console.log('in prod data', data)
+      // console.log('in prod data', data)
       dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data })
     } catch (error) {
       dispatch({
@@ -51,9 +51,9 @@ export const listProductDetails = (id) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_DETAILS_REQUEST })
 
-    const { data } = await axios.get(`/api/products/${id}`)
+    // const { data } = await axios.get(`/api/products/${id}`)
 
-    dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data })
+    dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: id })
   } catch (error) {
     dispatch({
       type: PRODUCT_DETAILS_FAILURE,

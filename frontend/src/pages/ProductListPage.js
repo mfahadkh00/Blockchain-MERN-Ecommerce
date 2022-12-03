@@ -57,21 +57,21 @@ const ProductListPage = ({ history, match }) => {
 		}
 	}, [userLoginError, dispatch, userInfo]);
 
-	useEffect(() => {
-		if (!userInfo.isAdmin) history.push('/login');
-		dispatch({ type: PRODUCT_CREATE_RESET }); //reset the new product detail
-		if (successCreate)
-			history.push(`/admin/product/${createdProduct._id}/edit`);
-		else dispatch(listProducts('', pageNumber, 10)); // 3rd parameter is the no of products to be listed per page
-	}, [
-		dispatch,
-		history,
-		userInfo,
-		successDelete,
-		successCreate,
-		createdProduct,
-		pageNumber,
-	]);
+	// useEffect(() => {
+	// 	if (!userInfo.isAdmin) history.push('/login');
+	// 	dispatch({ type: PRODUCT_CREATE_RESET }); //reset the new product detail
+	// 	if (successCreate)
+	// 		history.push(`/admin/product/${createdProduct._id}/edit`);
+	// 	else dispatch(listProducts('', pageNumber, 10)); // 3rd parameter is the no of products to be listed per page
+	// }, [
+	// 	dispatch,
+	// 	history,
+	// 	userInfo,
+	// 	successDelete,
+	// 	successCreate,
+	// 	createdProduct,
+	// 	pageNumber,
+	// ]);
 
 	// delete product after confirming
 	const handleDelete = (id) => {

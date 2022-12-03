@@ -29,58 +29,11 @@ import ServiceWorkerWrapper from './ServiceWorkerWrapper'
 import Web3 from 'web3'
 import { useDispatch } from 'react-redux'
 import { initializeBlockchain } from './actions/blockchainAction'
-import { CONTRACT_ABI } from './sol-config/contractABI'
 import { listProducts } from './actions/productActions'
-import $ from 'jquery'
 import { blockchainLoader } from './sol-config/config'
 
 const App = () => {
   const dispatch = useDispatch()
-  const [refreshData, setRefreshData] = useState(true)
-  const [productList, setProductList] = useState([])
-
-  // useEffect(() => {
-  //   if (!refreshData) return
-  //   setRefreshData(false)
-  //   blockchainLoader().then((e) => {
-  //     console.log('Account: ', e.addressAccount)
-  //     console.log('Contract: ', e.contract)
-  //     console.log('Products: ', e.productList)
-  //   })
-  // }, [])
-
-  // const fetchProducts = async (contract) => {
-  //   console.log('Product count: ')
-  //   let count = await contract.methods.productCount().call()
-  //   console.log('🚀 ~ file: App.js ~ line 40 ~ fetchProducts ~ count', count)
-  //   let arr = []
-  //   for (let i = 1; i <= count; i++) {
-  //     let item = await contract.methods.productList(i).call()
-  //     arr.push(item)
-  //   }
-  //   console.log('prods Arr', arr)
-  //   dispatch(listProducts(arr))
-  // }
-
-  // const addProduct = async (contract, id) => {
-  //   let prod = {
-  //     name: 'TEST',
-  //     imgUrl: '/imgUrls/airpods.jpg',
-  //     description:
-  //       'Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working',
-  //     price: 14999,
-  //     quantity: 20,
-  //   }
-  //   console.log('adding prod: ', prod)
-  //   let ret = await contract.methods
-  //     .addProduct(prod)
-  //     .send({ from: id })
-  //     .once('receipt', (receipt) => {
-  //       console.log('recipet:', receipt)
-  //     })
-
-  //   console.log('ret val0', ret)
-  // }
 
   useEffect(() => {
     const loadBlockchainData = async () => {
@@ -96,9 +49,9 @@ const App = () => {
       }
       const web3 = new Web3(App.web3Provider)
       await blockchainLoader(web3).then((e) => {
-        console.log('Account: ', e.addressAccount)
-        console.log('Contract: ', e.contract)
-        console.log('Products: ', e.productList)
+        // console.log('Account: ', e.addressAccount)
+        // console.log('Contract: ', e.contract)
+        // console.log('Products: ', e.productList)
 
         dispatch(
           initializeBlockchain({
@@ -107,26 +60,8 @@ const App = () => {
             // balance: accounts[0].getBalance()
           }),
         )
-        setProductList(e.productList)
         dispatch(listProducts(e.productList))
       })
-      // App.initContract()
-
-      //   const web3 = new Web3(Web3.givenProvider || process.env.WEB3_URL)
-      // const accounts = await web3.eth.getAccounts()
-      // console.log('Account loaded: ', accounts[0])
-      // const contract = new web3.eth.Contract(
-      //   CONTRACT_ABI,
-      //   process.env.DAP_ADDRESS,
-      // )
-      // console.log('contract: ', contract)
-      // dispatch(
-      //   initializeBlockchain({
-      //     account: accounts[0],
-      //     contract: contract,
-      //     // balance: accounts[0].getBalance()
-      //   }),
-      // )
     }
     loadBlockchainData()
   }, [])

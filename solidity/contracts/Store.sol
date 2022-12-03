@@ -138,14 +138,14 @@ contract Store {
         return productList[prodID];
     }
 
-    function getProductList() public returns (Product[] memory) {
+    function getProductList() public view returns (Product[] memory) {
         Product[] memory _products = new Product[](productCount);
 
         for (uint256 i = 0; i < productCount; i++) {
             _products[i] = productList[i];
         }
 
-        emit ProductsReturned(_products);
+        // emit ProductsReturned(_products);
         return _products;
     }
 
@@ -189,7 +189,7 @@ contract Store {
         );
     }
 
-    function getReviews(uint256 _productId) public returns (Review[] memory) {
+    function getReviews(uint256 _productId) public view returns (Review[] memory) {
         Review[] memory reviews = new Review[](
             productList[_productId].reviewCount
         );
@@ -198,7 +198,7 @@ contract Store {
             reviews[i] = reviewList[_productId][i];
         }
 
-        emit ReviewsReturned(reviews);
+        // emit ReviewsReturned(reviews);
         return reviews;
     }
 
@@ -262,14 +262,14 @@ contract Store {
         );
     }
 
-    function getOrders() public returns (Order[] memory) {
+    function getOrders() public view returns(Order[] memory) {
         Order[] memory _orders = new Order[](userList[msg.sender].orderCount);
 
         for (uint256 i = 0; i < userList[msg.sender].orderCount; i++) {
             _orders[i] = orderList[msg.sender][i];
         }
 
-        emit OrdersReturned(_orders);
+        // emit OrdersReturned(_orders);
         return _orders;
     }
 }
