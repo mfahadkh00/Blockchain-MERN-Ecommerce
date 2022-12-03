@@ -82,58 +82,17 @@ const LoginPage = ({ location, history }) => {
 		}
 	}, []);
 
-	// if the passport social login is successful, get the user's data and store in redux store
-	useEffect(() => {
-		// check for url params
-		if (window.location.search.includes('success')) {
-			const queries = window.location.search.split('&');
-			const isSuccess = queries[0].split('=')[1] === 'success';
-			const id = queries[1].split('=')[1];
+	// // if the passport social login is successful, get the user's data and store in redux store
+	// useEffect(() => {
+	// 	// check for url params
+	// 	if (window.location.search.includes('success')) {
+	// 		const queries = window.location.search.split('&');
+	// 		const isSuccess = queries[0].split('=')[1] === 'success';
+	// 		const id = queries[1].split('=')[1];
 
-			// if successful login
-			if (isSuccess) {
-				// get user data and dispatch login success
-				axios
-					.post('/api/users/passport/data', {
-						id,
-					})
-					.then(({ data }) => {
-						const {
-							id,
-							email,
-							name,
-							isAdmin,
-							isConfirmed,
-							avatar,
-						} = data;
-						const userData = {
-							id,
-							email,
-							name,
-							isAdmin,
-							isConfirmed,
-							avatar,
-							isSocialLogin: true,
-						};
-
-						// login user in frontend
-						dispatch({
-							type: USER_LOGIN_SUCCESS,
-							payload: userData,
-						});
-						// update the local storage
-						localStorage.setItem(
-							'userInfo',
-							JSON.stringify(userData)
-						);
-
-						// remove variable that was meant to promt email verification if it is a social login
-						localStorage.removeItem('promptEmailVerfication');
-						history.push('/shipping'); // move to shipping page by default
-					});
-			}
-		}
-	}, [dispatch, history, redirect]);
+	// 		// if successful login
+	// 	}
+	// }, [dispatch, history, redirect]);
 
 	useEffect(() => {
 		// if redirected from confirmation page, fill email and let user fill the password field
@@ -330,7 +289,7 @@ const LoginPage = ({ location, history }) => {
 										</Button>
 									</Col>
 								</Form>
-								<SocialLoginOptions />
+								{/* <SocialLoginOptions /> */}
 							</>
 						)}
 					</div>

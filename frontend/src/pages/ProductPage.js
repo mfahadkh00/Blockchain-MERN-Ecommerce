@@ -14,16 +14,7 @@ import {
 import ImageMagnifier from '../components/ImageMagnifier' // to magnify image on hover
 import Rating from '../components/Rating'
 import Meta from '../components/Meta'
-import Loader from '../components/Loader'
 import Message from '../components/Message'
-import {
-  listProductDetails,
-  createProductReview,
-} from '../actions/productActions'
-import { listMyOrders } from '../actions/orderActions'
-import { refreshLogin, getUserDetails } from '../actions/userActions'
-import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
-import getDateString from '../utils/getDateString'
 import '../styles/product-page.css'
 import { addItem } from '../actions/cartActions'
 
@@ -32,12 +23,8 @@ const ProductPage = ({ history, match }) => {
   const [rating, setRating] = useState(0)
   const [review, setReview] = useState('')
   const [allReviews, setAllReviews] = useState([])
-  const [hasOrderedItem, setHasOrderedItem] = useState(false) // bool to check if the user has ordered this product
   const [showReviewForm, setShowReviewForm] = useState(false) // bool to decide whether to show the review form or not
   const dispatch = useDispatch()
-
-  const userLogin = useSelector((state) => state.userLogin)
-  const { userInfo } = userLogin
 
   const productDetails = useSelector((state) => state.productDetails)
   // const productList=useSelector((state)=>state.productList.products);
@@ -46,9 +33,6 @@ const ProductPage = ({ history, match }) => {
   //   console.log('🚀 ~ file: ProductPage.js:44 ~ ProductPage ~ product', product)
   // const selectedProd=productList?.find((item)=>item.id===productDetails.id)
 
-  const userDetails = useSelector((state) => state.userDetails)
-  const { error: userLoginError } = userDetails
-
   const productCreateReview = useSelector((state) => state.productCreateReview)
   const {
     loading: loadingCreateReview,
@@ -56,96 +40,59 @@ const ProductPage = ({ history, match }) => {
     error: errorCreateReview,
   } = productCreateReview
 
-  const orderListUser = useSelector((state) => state.orderListUser)
-  const { orders } = orderListUser
+  const contract = useSelector((state) => state?.blockchainData?.contract)
+  const sender = useSelector((state) => state?.blockchainData?.userAccount)
 
-  // fetch user login info
-  useEffect(() => {
-    userInfo
-      ? userInfo.isSocialLogin
-        ? dispatch(getUserDetails(userInfo.id))
-        : dispatch(getUserDetails('profile'))
-      : dispatch(getUserDetails('profile'))
-  }, [userInfo, dispatch])
-
-  // refresh the access tokens for accessing user details
-  useEffect(() => {
-    if (userLoginError && userInfo && !userInfo.isSocialLogin) {
-      const user = JSON.parse(localStorage.getItem('userInfo'))
-      user && dispatch(refreshLogin(user.email))
+  const fetchReviews = async () => {
+    try {
+      let data = await contract?.getReviews(product?.id)
+      setAllReviews(data)
+    } catch (e) {
+      console.log(e)
     }
-  }, [userLoginError, dispatch, userInfo])
+  }
 
   useEffect(() => {
-    dispatch(listMyOrders())
-  }, [dispatch])
+    fetchReviews()
 
-  // add a new review, and reset the stored product review in the redux store
-  //   useEffect(() => {
-  //     if (successCreateReview) {
-  //       window.alert('Review Submitted!!')
-  //       setRating(0)
-  //       setReview('')
-  //       dispatch({ type: PRODUCT_CREATE_REVIEW_RESET })
+    return () => {
+      setAllReviews('')
+    }
+  }, [])
+
+
+  // useEffect(() => {
+  //   if (allReviews && sender) {
+
+  //     let flag = 0 // to check if this user has already reviewed this product
+  //     for (let review of allReviews) {
+  //       if (review.user === sender) {
+  //         flag = 1
+  //         break
+  //       }
   //     }
-  //     dispatch(listProductDetails(match.params.id))
-  //   }, [match, dispatch, successCreateReview])
-
-  useEffect(() => {
-    if (product && product.reviews && userInfo) {
-      let flag = 0 // to check if this user has already reviewed this product
-      for (let review of product.reviews) {
-        if (review.user === userInfo.id) {
-          flag = 1
-          break
-        }
-      }
-      flag ? setShowReviewForm(false) : setShowReviewForm(true)
-    } else {
-      setShowReviewForm(true)
-    }
-  }, [product, userInfo])
-
-  useEffect(() => {
-    if (orders && orders.length) {
-      let flag = 0 // to check is this user has ordered this item
-      for (let obj of orders) {
-        for (let ele of obj.orderItems) {
-          if (ele.product.toString() === match.params.id) {
-            flag = 1
-            break
-          }
-        }
-      }
-      flag ? setHasOrderedItem(true) : setHasOrderedItem(false)
-    } else {
-      setHasOrderedItem(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders])
-
-  // arrange all reviews in reverse chronological order
-  useEffect(() => {
-    if (product && product.reviews) {
-      const sortedArr = product.reviews.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-      )
-      setAllReviews(sortedArr)
-    }
-  }, [product])
+  //     flag ? setShowReviewForm(false) : setShowReviewForm(true)
+  //   } else {
+  //     setShowReviewForm(true)
+  //   }
+  // }, [allReviews, sender])
 
   const handleAddToCart = (e) => {
     dispatch(addItem(product, quantity))
     history.push(`/cart/${match.params.id}?qty=${quantity}`)
   }
 
-  const handleReviewSubmit = (e) => {
-    dispatch(
-      createProductReview(match.params.id, {
-        rating,
-        review,
-      }),
-    )
+  const handleReviewSubmit = async (e) => {
+    try {
+      await contract.addReview(product?.id, parseInt(rating), review, {
+        from: sender,
+      })
+      window.alert('Review Submitted!!')
+      setRating(0)
+      setReview('')
+    } catch (e) {
+      console.log('error adding review: ', e)
+    }
   }
 
   return (
@@ -189,6 +136,7 @@ const ProductPage = ({ history, match }) => {
                   </ListGroup.Item>
                   <ListGroup.Item>
                     <strong>Price: </strong>
+                    Rs{' '}
                     {product.price &&
                       product.price.toLocaleString('en-PK', {
                         maximumFractionDigits: 2,
@@ -210,6 +158,7 @@ const ProductPage = ({ history, match }) => {
                           <strong>Price: </strong>
                         </Col>
                         <Col>
+                          Rs{' '}
                           {product.price &&
                             product.price.toLocaleString('en-PK', {
                               maximumFractionDigits: 2,
@@ -273,49 +222,43 @@ const ProductPage = ({ history, match }) => {
             <Row>
               <Col md={6}>
                 <h2 className="mt-3">Reviews</h2>
-                {(!product.reviews || !product.reviews.length) && (
+                {(!allReviews || !allReviews.length) && (
                   <Message variant="secondary">No Reviews Yet</Message>
                 )}
                 <ListGroup variant="flush">
                   {/* {console.log(
 									product.reviews.
 								)} */}
-                  {allReviews.map((item) => {
+                  {allReviews?.map((item, index) => {
                     return (
-                      <ListGroup.Item key={item.id}>
+                      <ListGroup.Item key={index}>
                         <div>
                           <img
-                            src={item.avatar}
-                            alt={item.name}
+                            src="https://nick-intl.mtvnimages.com/uri/mgid:file:gsp:scenic:/international/nickelodeon.com.au/aangs-journey-season-2-576.jpg?quality=0.80"
+                            alt={item?.name}
                             className="review-avatar"
                           />
-                          <strong>{item.name}</strong>
+                          <strong>{item?.user}</strong>
                         </div>
-                        <Rating value={item.rating} />
+                        <Rating value={item?.rating} />
                         <p
                           style={{
                             margin: '0',
                             fontSize: '1.1em',
                           }}
                         >
-                          {item.review}
+                          {item?.review}
                         </p>
-                        <small
-                          style={{
-                            fontSize: '0.9em',
-                          }}
-                        >
-                          {getDateString(item.createdAt, false)}
-                        </small>
                       </ListGroup.Item>
                     )
                   })}
-                  {hasOrderedItem && !showReviewForm && (
+                  {!showReviewForm && (
                     <Message dismissible>
                       You have already reviewed this product
                     </Message>
                   )}
-                  {hasOrderedItem && showReviewForm && (
+                  {showReviewForm && (
+                    // {1 && (
                     <>
                       <h2>Write a Customer Review</h2>
                       {errorCreateReview && (
@@ -323,8 +266,7 @@ const ProductPage = ({ history, match }) => {
                           {errorCreateReview}
                         </Message>
                       )}
-                      {loadingCreateReview && <Loader />}
-                      <Form onSubmit={handleReviewSubmit}>
+                      <Form>
                         <Form.Group controlId="rating">
                           <Form.Control
                             as="select"
@@ -355,7 +297,9 @@ const ProductPage = ({ history, match }) => {
                           </FloatingLabel>
                         </Form.Group>
                         <div className="d-grid">
-                          <Button type="submit">Submit Review</Button>
+                          <Button onClick={handleReviewSubmit}>
+                            Submit Review
+                          </Button>
                         </div>
                       </Form>
                     </>

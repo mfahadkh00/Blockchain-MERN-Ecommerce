@@ -19,7 +19,7 @@ import Web3 from 'web3'
 
 const HomePage = ({ match, history }) => {
   const keyword = match.params.keyword // to search for products
-  const pageNumber = Number(match.params.pageNumber) || 1 // current page number in the paginated display
+  // const pageNumber = Number(match.params.pageNumber) || 1 // current page number in the paginated display
   const [promptVerfication, setPromptVerification] = useState(false) // prompt user to verify email if not yet confirmed
   // const [products, setProducts] = useState(null)
   const [productAvailable, setProductAvailable] = useState(false)
@@ -27,7 +27,7 @@ const HomePage = ({ match, history }) => {
 
   // get the products list, userinfo and user details form the redix store
   const products = useSelector((state) => state?.blockchainData?.products)
-  console.log('🚀 ~ file: HomePage.js:30 ~ HomePage ~ productList', products)
+  // console.log('🚀 ~ file: HomePage.js:30 ~ HomePage ~ productList', products)
   // const temp = useSelector((state) => state?.productsList)
 
   // let { loading, error, pages } = temp
@@ -111,14 +111,6 @@ const HomePage = ({ match, history }) => {
       <div className="d-block d-md-none">
         <SearchBox history={history} />
       </div>
-
-      {/* if the user needs to be prompted about email verification, show this message */}
-      {promptVerfication ? (
-        <Message dismissible variant="info" duration={10}>
-          Account Created! Please check your email to verify your account and
-          start shopping.
-        </Message>
-      ) : null}
 
       {products ? (
         <>

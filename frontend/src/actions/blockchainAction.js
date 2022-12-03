@@ -7,10 +7,6 @@ export const initializeBlockchain = (obj) => async (dispatch, getState) => {
       type: INIT_BLOCKCHAIN,
       payload: obj,
     })
-    // dispatch({
-    //   type: UPDATE_CONTRACT,
-    //   payload: contract
-    // })
   } catch (e) {
     console.log('Failed to push blockchain account!')
   }
