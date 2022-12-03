@@ -47,10 +47,10 @@ contract Store {
     mapping(address => mapping(uint256 => mapping(uint256 => Product))) orderProductList;
 
     // Mappings for handling product functionalities
-    mapping(uint256 => Product) public productList;
+    mapping(uint256 => Product) productList;
     mapping(uint256 => mapping(uint256 => Review)) reviewList;
 
-    uint256 public productCount = 0;
+    uint256 productCount = 0;
 
     event UserAdded(address, string);
     event ProductAdded(uint256, string);
