@@ -24,88 +24,46 @@ import getDateString from '../utils/getDateString';
 
 const OrderPage = ({ match, history }) => {
 	// load stripe
-	const stripePromise = loadStripe(
-		process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
-	);
+
 	// for paypal payment
 	const [SDKReady, setSDKReady] = useState(false);
 	const dispatch = useDispatch();
 	const orderID = match.params.id;
-
-	const orderDetails = useSelector((state) => state.orderDetails);
+	const orderDetails = useSelector((state) => state?.orderDetails);
 	const { loading, order, error } = orderDetails;
 
-	const orderPay = useSelector((state) => state.orderPay);
+	const orderPay = useSelector((state) => state?.orderPay);
 	const { loading: loadingPay, success: successPay } = orderPay;
 
-	const orderDeliver = useSelector((state) => state.orderDeliver);
+	const orderDeliver = useSelector((state) => state?.orderDeliver);
 	const { loading: loadingDeliver, success: successDeliver } = orderDeliver;
 
-	const userLogin = useSelector((state) => state.userLogin);
+	const userLogin = useSelector((state) => state?.userLogin);
 	const { userInfo } = userLogin;
-
-	const userDetails = useSelector((state) => state.userDetails);
+	const contract = useSelector((state) => state?.blockchainData?.contract);
+	const userAccount=useSelector((state) => state?.blockchainData?.userAccount);
+	const userDetails = useSelector((state) => state?.userDetails);
 	const { error: userLoginError } = userDetails;
 
-	// get new access tokens using the refresh token, is user details throws an error
-	useEffect(() => {
-		if (userLoginError && userInfo && !userInfo.isSocialLogin) {
-			const user = JSON.parse(localStorage.getItem('userInfo'));
-			user && dispatch(refreshLogin(user.email));
+	const getOrderDetails=async()=>{
+		try{
+			let resp=await contract?.getOrders();
+			console.log(resp)
 		}
-	}, [userLoginError, dispatch, userInfo]);
+		catch(e)
+		{
+			console.log(e)
+		}
+	}
 
 	// set order to paid or delivered, and fetch updated orders
 	useEffect(() => {
-		if (!order || order._id !== orderID || successPay || successDeliver) {
+		if (!order || order?._id !== orderID || successPay || successDeliver) {
 			if (successPay) dispatch({ type: ORDER_PAY_RESET });
 			if (successDeliver) dispatch({ type: ORDER_DELIVER_RESET });
 			dispatch(getOrderDetails(orderID));
 		}
 	}, [order, orderID, dispatch, successPay, successDeliver]);
-
-	// add the script required for paypal payments dynamically, to avoid possible attacks
-	useEffect(() => {
-		const addScript = async () => {
-			const config = userInfo.isSocialLogin
-				? {
-						headers: {
-							Authorization: `SocialLogin ${userInfo.id}`,
-						},
-				  }
-				: {
-						headers: {
-							Authorization: `Bearer ${userInfo.accessToken}`,
-						},
-				  };
-			const { data: clientID } = await axios.get(
-				'/api/config/paypal',
-				config
-			);
-			// add the script
-			const script = document.createElement('script');
-			script.async = true;
-			script.type = 'text/javascript';
-			script.src = `https://www.paypal.com/sdk/js?client-id=${clientID}&currency=USD&disable-funding=credit,card`;
-			script.onload = () => setSDKReady(true);
-			document.body.appendChild(script);
-		};
-		if (!userInfo) history.push('/login'); // if not loggein in
-		if (!SDKReady) addScript();
-	}, [userInfo, SDKReady, history]);
-
-	// save the payment mthod as paypal
-	const successPaymentHandler = (paymentResult) => {
-		dispatch(savePaymentMethod('PayPal'));
-		dispatch(
-			payOrder(orderID, { ...paymentResult, paymentMode: 'paypal' })
-		);
-	};
-
-	// set order as delivered
-	const successDeliveryHandler = () => {
-		dispatch(deliverOrder(orderID));
-	};
 
 	return loading ? (
 		<Loader />
@@ -127,27 +85,27 @@ const OrderPage = ({ match, history }) => {
 									<h2>Shipping</h2>
 									<p>
 										<strong>Name: </strong>
-										{order.user.name}
+										{order?.user.name}
 									</p>
 									<p>
 										<strong>Email: </strong>
-										<a href={`mailto:${order.user.email}`}>
-											{order.user.email}
+										<a href={`mailto:${order?.user.email}`}>
+											{order?.user.email}
 										</a>
 									</p>
 									<p>
 										<strong>Address: </strong>{' '}
-										{order.shippingAddress.address},{' '}
-										{order.shippingAddress.city}-
-										{order.shippingAddress.postalCode},{' '}
-										{order.shippingAddress.country}
+										{order?.shippingAddress.address},{' '}
+										{order?.shippingAddress.city}-
+										{order?.shippingAddress.postalCode},{' '}
+										{order?.shippingAddress.country}
 									</p>
 									<div>
-										{order.isDelivered ? (
+										{order?.isDelivered ? (
 											<Message variant='success'>
 												Delivered at:{' '}
 												{getDateString(
-													order.deliveredAt
+													order?.deliveredAt
 												)}
 											</Message>
 										) : (
@@ -161,13 +119,13 @@ const OrderPage = ({ match, history }) => {
 									<h2>Payment Method</h2>
 									<p>
 										<strong>Method: </strong>{' '}
-										{order.paymentMethod}
+										{order?.paymentMethod}
 									</p>
 									<div>
-										{order.isPaid ? (
+										{order?.isPaid ? (
 											<Message variant='success'>
 												Paid at:{' '}
-												{getDateString(order.paidAt)}
+												{getDateString(order?.paidAt)}
 											</Message>
 										) : (
 											<Message variant='danger'>
@@ -178,13 +136,13 @@ const OrderPage = ({ match, history }) => {
 								</ListGroup.Item>
 								<ListGroup.Item>
 									<h2>Cart Items</h2>
-									{order.orderItems.length !== 0 ? (
+									{order?.orderItems.length !== 0 ? (
 										<ListGroup variant='flush'>
 											<div
 												style={{
 													background: 'red',
 												}}></div>
-											{order.orderItems.map(
+											{order?.orderItems.map(
 												(item, idx) => (
 													<ListGroup.Item key={idx}>
 														<Row>
@@ -258,7 +216,7 @@ const OrderPage = ({ match, history }) => {
 												<strong>Subtotal</strong>
 											</Col>
 											<Col>
-												{order.itemsPrice.toLocaleString(
+												{order?.itemsPrice.toLocaleString(
 													'en-PK',
 													{
 														maximumFractionDigits: 2,
@@ -275,7 +233,7 @@ const OrderPage = ({ match, history }) => {
 												<strong>Shipping</strong>
 											</Col>
 											<Col>
-												{order.shippingPrice.toLocaleString(
+												{order?.shippingPrice.toLocaleString(
 													'en-PK',
 													{
 														maximumFractionDigits: 2,
@@ -292,7 +250,7 @@ const OrderPage = ({ match, history }) => {
 												<strong>Tax</strong>
 											</Col>
 											<Col>
-												{order.taxPrice.toLocaleString(
+												{order?.taxPrice.toLocaleString(
 													'en-PK',
 													{
 														maximumFractionDigits: 2,
@@ -309,7 +267,7 @@ const OrderPage = ({ match, history }) => {
 												<strong>Total</strong>
 											</Col>
 											<Col>
-												{order.totalPrice.toLocaleString(
+												{order?.totalPrice.toLocaleString(
 													'en-PK',
 													{
 														maximumFractionDigits: 2,
@@ -321,9 +279,9 @@ const OrderPage = ({ match, history }) => {
 										</Row>
 									</ListGroup.Item>
 									{/* show paypal button or the stripe checkout form */}
-									{!order.isPaid && (
+									{!order?.isPaid && (
 										<>
-											{order.paymentMethod ===
+											{order?.paymentMethod ===
 											'PayPal' ? (
 												<ListGroup.Item>
 													{loadingPay && <Loader />}
@@ -340,12 +298,12 @@ const OrderPage = ({ match, history }) => {
 															currency='USD'
 															// converting PKR to USD, as paypal cannot support PKR
 															amount={Number(
-																order.totalPrice /
+																order?.totalPrice /
 																	72
 															).toFixed(2)}
-															onSuccess={
-																successPaymentHandler
-															}
+															// onSuccess={
+															// 	successPaymentHandler
+															// }
 														/>
 													)}
 												</ListGroup.Item>
@@ -353,11 +311,11 @@ const OrderPage = ({ match, history }) => {
 												<ListGroup.Item>
 													{loadingPay && <Loader />}
 													<Elements
-														stripe={stripePromise}>
+														stripe={null}>
 														{/* price in paisa */}
 														<CheckoutForm
 															price={
-																order.totalPrice *
+																order?.totalPrice *
 																100
 															}
 															orderID={orderID}
@@ -370,8 +328,8 @@ const OrderPage = ({ match, history }) => {
 									{/* show this only to admins, after payment is done */}
 									{userInfo &&
 										userInfo.isAdmin &&
-										order.isPaid &&
-										!order.isDelivered && (
+										order?.isPaid &&
+										!order?.isDelivered && (
 											<ListGroup.Item>
 												{loadingDeliver && <Loader />}
 												<div className='d-grid'>
@@ -379,9 +337,10 @@ const OrderPage = ({ match, history }) => {
 														type='button'
 														variant='info'
 														size='lg'
-														onClick={
-															successDeliveryHandler
-														}>
+														// onClick={
+														// 	successDeliveryHandler
+														// }
+														>
 														Mark as Delivered
 													</Button>
 												</div>

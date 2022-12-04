@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button, Row, Col, ListGroup, Image, Card } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import CheckoutStatus from '../components/CheckoutStatus'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
-import { createOrder } from '../actions/orderActions'
 import { CART_RESET } from '../constants/cartConstants'
 import { refreshLogin, getUserDetails } from '../actions/userActions'
 
@@ -19,12 +18,10 @@ const PlaceOrderPage = ({ history }) => {
   const { order, loading, success, error } = orderCreate
   const contract = useSelector((state) => state?.blockchainData?.contract)
   const sender = useSelector((state) => state?.blockchainData?.userAccount)
+  const [orderSuccess, setOrderSuccess] = useState({ status: false, id: -1 })
 
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
-
-  const userDetails = useSelector((state) => state.userDetails)
-  const { error: userLoginError } = userDetails
 
   // fetch the userinfo from reducx store
   useEffect(() => {
@@ -35,65 +32,59 @@ const PlaceOrderPage = ({ history }) => {
       : dispatch(getUserDetails('profile'))
   }, [userInfo, dispatch])
 
-  // refresh access token when user detail throws error
   useEffect(() => {
-    if (userLoginError && userInfo && !userInfo.isSocialLogin) {
-      const user = JSON.parse(localStorage.getItem('userInfo'))
-      user && dispatch(refreshLogin(user.email))
-    }
-  }, [userLoginError, dispatch, userInfo])
-
-  useEffect(() => {
-    if (success) {
+    if (orderSuccess?.status) {
       localStorage.removeItem('cartItems')
       dispatch({ type: CART_RESET, payload: shippingAddress }) // remove items from cart once paid, but keep the shipping address in store
-      history.push(`/order/${order._id}`)
+      history.push(`/order/${order?.id}`)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [success, history])
+  }, [orderSuccess, history])
 
   // All prices, tax is randomly  assigned
   cart.itemsPrice = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   )
-  cart.totalPrice = cart.itemsPrice // + cart.taxPrice + cart.shippingPrice
+  cart.totalPrice = cart?.itemsPrice // + cart.taxPrice + cart.shippingPrice
 
   const handleOrder = async () => {
-    // try {
-    // e.preventDefault()
-    let payload = {
-      products: cartItems.map((item) => {
+    try {
+      let products = cartItems.map((item) => {
         return {
           id: parseInt(item.id),
           quantity: item.quantity,
         }
-      }),
+      })
+      let shippingDetail =
+        shippingAddress.address +
+        ', ' +
+        shippingAddress.city +
+        ', ' +
+        shippingAddress.country +
+        ', ' +
+        shippingAddress.postalCode
+      console.log('order payload: ', products)
+
+      const x=0xb1a2bc2ec50000
+      console.log('test',x?.toNumber())
+
+      let resp = await contract.addOrder(products, shippingDetail, {
+        from: sender, value:cart?.totalPrice
+      })
+      console.log('1', resp.logs[0].args[1].toNumber())
+      console.log('2', resp.logs[0].args[2].toNumber())
+
+      if (resp) {
+        setOrderSuccess({
+          status: true,
+          id: resp?.logs[0]?.args[1]?.toNumber(),
+        })
+      }
+    } catch (e) {
+      console.log('🚀Error!', e)
     }
-    let shippingDetail =
-      shippingAddress.address +
-      ', ' +
-      shippingAddress.city +
-      ', ' +
-      shippingAddress.country +
-      ', ' +
-      shippingAddress.postalCode
-    console.log('order payload: ', payload)
-
-    let resp = await contract.addOrder(payload, shippingDetail, {
-      from: sender,
-    })
-    console.log('🚀 ~ file: PlaceOrderPage.js:84 ~ handleOrder ~ resp', resp)
-    // } catch (e) {
-    //   console.log(e)
-    // }
-    // dispatch(
-    //   createOrder({
-    //     payload,
-    //   }),
-    // )
   }
-
   return (
     <>
       {/* last step in the ckecout process */}
@@ -221,7 +212,7 @@ const PlaceOrderPage = ({ history }) => {
                     <Button
                       type="button"
                       size="lg"
-                      disabled={!cartItems.length}
+                      disabled={!cartItems.length || orderSuccess?.status}
                       onClick={() => {
                         handleOrder()
                       }}
