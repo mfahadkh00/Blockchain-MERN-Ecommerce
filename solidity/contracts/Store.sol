@@ -11,6 +11,7 @@ contract Store {
         bytes32 password;
         uint256 orderCount;
         bool isUser;
+        uint256 balance;
     }
 
     struct Product {
@@ -103,7 +104,8 @@ contract Store {
             _billingAdd,
             keccak256(abi.encode(_password, msg.sender)),
             0,
-            true
+            true,
+            0
         );
 
         emit UserAdded(msg.sender, _email);
@@ -287,11 +289,12 @@ contract Store {
         );
 
         userList[msg.sender].orderCount++;
+        userList[msg.sender].balance += msg.value;
 
         emit OrderPlaced(
             msg.sender,
             userList[msg.sender].orderCount - 1,
-            total
+            userList[msg.sender].balance
         );
     }
 
