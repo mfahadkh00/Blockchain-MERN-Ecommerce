@@ -66,21 +66,21 @@ contract Store {
             "Airpods Wireless Bluetooth Headphones",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
             "https://rebeltech.com/wp-content/uploads/2021/10/MME73.jpg",
-            14999,
+            1,
             20
         );
         addProduct(
             "iPhone 11 Pro 256GB Memory",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
             "https://images.priceoye.pk/apple-iphone-xi-pakistan-priceoye-oik1o-500x500.webp",
-            14999,
+            2,
             20
         );
         addProduct(
             "Cannon EOS 80D DSLR Camera",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
             "data:image",
-            14999,
+            4,
             20
         );
     }
@@ -235,7 +235,7 @@ contract Store {
     function addOrder(
         OrderProduct[] memory _products,
         string memory _shippingDet
-    ) public {
+    ) public payable {
         require(
             userList[msg.sender].isUser,
             "Store: authenticateUser - User does not exist"
@@ -259,6 +259,8 @@ contract Store {
                 "Store: addOrder - Product out of stock"
             );
         }
+
+        require(msg.value >= total, "Store: addOrder - Insufficient funds");
 
         for (uint256 i = 0; i < _products.length; i++) {
             productList[_products[i].id].quantity -= _products[i].quantity;
