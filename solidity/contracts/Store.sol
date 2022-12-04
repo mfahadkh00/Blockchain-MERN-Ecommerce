@@ -303,4 +303,8 @@ contract Store {
         // emit OrdersReturned(_orders);
         return _orders;
     }
+
+    function getOrder(uint256 _orderID) public view returns (Order memory) {
+        return orderList[msg.sender][_orderID];
+    }
 }
