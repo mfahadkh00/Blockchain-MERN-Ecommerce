@@ -243,8 +243,6 @@ contract Store {
             "Store: authenticateUser - User does not exist"
         );
 
-        uint256 total = 0;
-
         for (uint256 i = 0; i < _products.length; i++) {
             require(
                 _products[i].id >= 0 && _products[i].id <= productCount,
@@ -260,13 +258,19 @@ contract Store {
                 productList[_products[i].id].quantity > 0,
                 "Store: addOrder - Product out of stock"
             );
+
+            require(
+                _products[i].quantity > 0,
+                "Store: addOrder - Invalid quantity"
+            );
         }
 
-        require(msg.value >= total, "Store: addOrder - Insufficient funds");
+        uint256 eth = 10**18;
+        uint256 total = 0;
 
         for (uint256 i = 0; i < _products.length; i++) {
             productList[_products[i].id].quantity -= _products[i].quantity;
-            total += productList[_products[i].id].price;
+            total += (productList[_products[i].id].price * eth);
 
             orderProductList[msg.sender][userList[msg.sender].orderCount][
                 i
@@ -280,6 +284,8 @@ contract Store {
                 productList[_products[i].id].reviewCount
             );
         }
+
+        require(msg.value >= total, "Store: addOrder - Insufficient funds");
 
         orderList[msg.sender][userList[msg.sender].orderCount] = Order(
             userList[msg.sender].orderCount,
