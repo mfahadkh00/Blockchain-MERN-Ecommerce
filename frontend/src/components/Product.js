@@ -46,12 +46,7 @@ const Product = ({ product }) => {
         </Card.Text>
 
         <Card.Text as="h4">
-          {product.price &&
-            product.price.toLocaleString('en-PK', {
-              maximumFractionDigits: 2,
-              style: 'currency',
-              currency: 'PKR',
-            })}
+          ETH{product?.price}
         </Card.Text>
       </Card.Body>
     </Card>

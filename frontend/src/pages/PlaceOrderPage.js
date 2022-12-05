@@ -7,6 +7,7 @@ import Message from '../components/Message'
 import Loader from '../components/Loader'
 import { CART_RESET } from '../constants/cartConstants'
 import { refreshLogin, getUserDetails } from '../actions/userActions'
+import { authenticate } from 'passport'
 
 const PlaceOrderPage = ({ history }) => {
   const dispatch = useDispatch()
@@ -19,7 +20,7 @@ const PlaceOrderPage = ({ history }) => {
   const contract = useSelector((state) => state?.blockchainData?.contract)
   const sender = useSelector((state) => state?.blockchainData?.userAccount)
   const [orderSuccess, setOrderSuccess] = useState({ status: false, id: -1 })
-
+  const [orderID, setOrderID] = useState(-1)
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
 
@@ -33,13 +34,13 @@ const PlaceOrderPage = ({ history }) => {
   }, [userInfo, dispatch])
 
   useEffect(() => {
-    if (orderSuccess?.status) {
+    if (orderID >= 0) {
       localStorage.removeItem('cartItems')
       dispatch({ type: CART_RESET, payload: shippingAddress }) // remove items from cart once paid, but keep the shipping address in store
-      history.push(`/order/${order?.id}`)
+      history.push(`/order/${orderID}`)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderSuccess, history])
+  }, [orderID])
 
   // All prices, tax is randomly  assigned
   cart.itemsPrice = cartItems.reduce(
@@ -69,13 +70,17 @@ const PlaceOrderPage = ({ history }) => {
       // const x=0xb1a2bc2ec50000
       // console.log('test',x?.toNumber())
       let ethPrice = cart?.totalPrice * Math.pow(10, 18)
-      console.log("🚀 ~ file: PlaceOrderPage.js:72 ~ handleOrder ~ ethPrice", ethPrice)
+      console.log(
+        '🚀 ~ file: PlaceOrderPage.js:72 ~ handleOrder ~ ethPrice',
+        ethPrice,
+      )
       let resp = await contract.addOrder(products, shippingDetail, {
         from: sender,
-        to:contract?.address,
+        to: contract?.address,
         value: ethPrice,
       })
-      // console.log('1', resp.logs[0].args[1].toNumber())
+      console.log('1', resp.logs[0].args[1].toNumber())
+      setOrderID(resp.logs[0].args[1].toNumber())
       // console.log('2', resp.logs[0].args[2].toNumber())
 
       if (resp) {
@@ -217,7 +222,11 @@ const PlaceOrderPage = ({ history }) => {
                       size="lg"
                       disabled={!cartItems.length || orderSuccess?.status}
                       onClick={() => {
-                        handleOrder()
+                        const flag = localStorage.getItem('authenticated')
+                        if (flag==='true') {
+                          console.log('flag',flag)
+                          handleOrder()
+                        } else window.alert('Login first!')
                       }}
                     >
                       Place Order

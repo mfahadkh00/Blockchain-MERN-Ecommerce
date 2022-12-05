@@ -136,13 +136,8 @@ const ProductPage = ({ history, match }) => {
                   </ListGroup.Item>
                   <ListGroup.Item>
                     <strong>Price: </strong>
-                    Rs{' '}
-                    {product.price &&
-                      product.price.toLocaleString('en-PK', {
-                        maximumFractionDigits: 2,
-                        style: 'currency',
-                        currency: 'PKR',
-                      })}
+                    ETH{' '}
+                    {product.price}
                   </ListGroup.Item>
                   <ListGroup.Item>
                     <strong>Description:</strong> {product.description}
@@ -158,13 +153,8 @@ const ProductPage = ({ history, match }) => {
                           <strong>Price: </strong>
                         </Col>
                         <Col>
-                          Rs{' '}
-                          {product.price &&
-                            product.price.toLocaleString('en-PK', {
-                              maximumFractionDigits: 2,
-                              style: 'currency',
-                              currency: 'PKR',
-                            })}
+                          ETH{' '}
+                          {product.price}
                         </Col>
                       </Row>
                     </ListGroup.Item>

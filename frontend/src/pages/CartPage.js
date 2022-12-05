@@ -111,7 +111,7 @@ const CartPage = ({ match, location, history }) => {
 											alignItems: 'center',
 											justifyContent: 'space-evenly',
 										}}>
-										Rs{item?.price}
+										ETH{item?.price}
 
 										<div>
 											<i
@@ -193,7 +193,7 @@ const CartPage = ({ match, location, history }) => {
 												fontSize: '1.2em',
 												width: '50%',
 											}}>
-											Rs{item?.price}
+											ETH{item?.price}
 
 											<div className='ms-1'>
 												<i
@@ -279,17 +279,12 @@ const CartPage = ({ match, location, history }) => {
 								{totalItems > 1 && 's'}
 							</h2>
 							<strong>
-								{cartItems
+								ETH {cartItems
 									.reduce(
 										(acc, item) =>
 											acc + item?.quantity * item?.price,
 										0
-									)
-									?.toLocaleString('en-PK', {
-										maximumFractionDigits: 2,
-										style: 'currency',
-										currency: 'PKR',
-									})}
+									)}
 							</strong>
 						</ListGroup.Item>
 						<ListGroup.Item>

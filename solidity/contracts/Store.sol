@@ -81,7 +81,7 @@ contract Store {
         addProduct(
             "Cannon EOS 80D DSLR Camera",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
-            "data:image",
+            "https://hashmiphotos.com/wp-content/uploads/2019/08/Canon-250D-DSLR-Camera.jpg",
             4,
             20
         );

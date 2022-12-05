@@ -41,12 +41,8 @@ const ProductCarousel = () => {
 									fluid
 								/>
 								<Carousel.Caption className='carousel-caption'>
-									{product.name} (
-									{product.price.toLocaleString('en-PK', {
-										maximumFractionDigits: 2,
-										style: 'currency',
-										currency: 'PKR',
-									})}
+									{product?.name} (
+									ETH {product?.price}
 									)
 								</Carousel.Caption>
 							</Link>

@@ -59,7 +59,7 @@ const RegisterPage = ({ location, history }) => {
     if (password !== confirmPassword) {
       setMessage('Passwords do not match. Please retry.')
     } else {
-      dispatch(registerUser(name, email, password))
+      // dispatch(registerUser(name, email, password))
       console.log(email, name, password, contract?.address)
 
       try {
@@ -73,6 +73,7 @@ const RegisterPage = ({ location, history }) => {
         console.log('addUser', addUser)
       } catch (error) {
         console.log('error', error)
+        window.alert("Failed to register!")
       }
     }
   }
