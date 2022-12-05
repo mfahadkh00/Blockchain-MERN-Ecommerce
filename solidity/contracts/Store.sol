@@ -285,7 +285,7 @@ contract Store {
             );
         }
 
-        require(msg.value >= total, "Store: addOrder - Insufficient funds");
+        // require(msg.value >= total, "Store: addOrder - Insufficient funds");
 
         orderList[msg.sender][userList[msg.sender].orderCount] = Order(
             userList[msg.sender].orderCount,
@@ -300,7 +300,7 @@ contract Store {
         emit OrderPlaced(
             msg.sender,
             userList[msg.sender].orderCount - 1,
-            userList[msg.sender].balance
+            total
         );
     }
 
