@@ -50,6 +50,7 @@ contract Store {
     // Mappings for handling product functionalities
     mapping(uint256 => Product) productList;
     mapping(uint256 => mapping(uint256 => Review)) reviewList;
+    // mapping(address => uint256) balances;
 
     uint256 productCount = 0;
 
@@ -243,6 +244,11 @@ contract Store {
             "Store: authenticateUser - User does not exist"
         );
 
+        // require(
+        //     msg.value > msg.sender.balance,
+        //     "Store: addOrder - Insufficient funds in wallet"
+        // );
+
         for (uint256 i = 0; i < _products.length; i++) {
             require(
                 _products[i].id >= 0 && _products[i].id <= productCount,
@@ -285,6 +291,9 @@ contract Store {
             );
         }
 
+        // address payable owner = payable(address(this));
+        // owner.transfer(msg.value);
+
         // require(msg.value >= total, "Store: addOrder - Insufficient funds");
 
         orderList[msg.sender][userList[msg.sender].orderCount] = Order(
@@ -295,12 +304,14 @@ contract Store {
         );
 
         userList[msg.sender].orderCount++;
-        userList[msg.sender].balance += msg.value;
+        // userList[msg.sender].balance += msg.value;
+
+        // address(this).balance = msg.value;
 
         emit OrderPlaced(
             msg.sender,
             userList[msg.sender].orderCount - 1,
-            total
+            address(this).balance
         );
     }
 
