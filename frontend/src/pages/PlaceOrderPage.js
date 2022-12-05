@@ -66,14 +66,17 @@ const PlaceOrderPage = ({ history }) => {
         shippingAddress.postalCode
       console.log('order payload: ', products)
 
-      const x=0xb1a2bc2ec50000
-      console.log('test',x?.toNumber())
-
+      // const x=0xb1a2bc2ec50000
+      // console.log('test',x?.toNumber())
+      let ethPrice = cart?.totalPrice * Math.pow(10, 18)
+      console.log("🚀 ~ file: PlaceOrderPage.js:72 ~ handleOrder ~ ethPrice", ethPrice)
       let resp = await contract.addOrder(products, shippingDetail, {
-        from: sender, value:cart?.totalPrice
+        from: sender,
+        to:contract?.address,
+        value: ethPrice,
       })
-      console.log('1', resp.logs[0].args[1].toNumber())
-      console.log('2', resp.logs[0].args[2].toNumber())
+      // console.log('1', resp.logs[0].args[1].toNumber())
+      // console.log('2', resp.logs[0].args[2].toNumber())
 
       if (resp) {
         setOrderSuccess({
