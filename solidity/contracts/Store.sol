@@ -291,9 +291,6 @@ contract Store {
             );
         }
 
-        // address payable owner = payable(address(this));
-        // owner.transfer(msg.value);
-
         // require(msg.value >= total, "Store: addOrder - Insufficient funds");
 
         orderList[msg.sender][userList[msg.sender].orderCount] = Order(
@@ -303,16 +300,13 @@ contract Store {
             _products.length
         );
 
-        userList[msg.sender].orderCount++;
-        // userList[msg.sender].balance += msg.value;
-
-        // address(this).balance = msg.value;
-
         emit OrderPlaced(
             msg.sender,
-            userList[msg.sender].orderCount - 1,
+            userList[msg.sender].orderCount,
             address(this).balance
         );
+
+        userList[msg.sender].orderCount++;
     }
 
     function getOrders() public view returns (Order[] memory) {
