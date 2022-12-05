@@ -69,7 +69,7 @@ const CartPage = ({ match, location, history }) => {
 
 	// proceed to shipping address page, which is the next step in placing an order
 	const handleCheckout = (e) => {
-		history.push('/login?redirect=shipping');
+		history.push('/shipping');
 	};
 
 	return (
