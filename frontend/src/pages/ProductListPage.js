@@ -57,21 +57,21 @@ const ProductListPage = ({ history, match }) => {
 		}
 	}, [userLoginError, dispatch, userInfo]);
 
-	useEffect(() => {
-		if (!userInfo.isAdmin) history.push('/login');
-		dispatch({ type: PRODUCT_CREATE_RESET }); //reset the new product detail
-		if (successCreate)
-			history.push(`/admin/product/${createdProduct._id}/edit`);
-		else dispatch(listProducts('', pageNumber, 10)); // 3rd parameter is the no of products to be listed per page
-	}, [
-		dispatch,
-		history,
-		userInfo,
-		successDelete,
-		successCreate,
-		createdProduct,
-		pageNumber,
-	]);
+	// useEffect(() => {
+	// 	if (!userInfo.isAdmin) history.push('/login');
+	// 	dispatch({ type: PRODUCT_CREATE_RESET }); //reset the new product detail
+	// 	if (successCreate)
+	// 		history.push(`/admin/product/${createdProduct._id}/edit`);
+	// 	else dispatch(listProducts('', pageNumber, 10)); // 3rd parameter is the no of products to be listed per page
+	// }, [
+	// 	dispatch,
+	// 	history,
+	// 	userInfo,
+	// 	successDelete,
+	// 	successCreate,
+	// 	createdProduct,
+	// 	pageNumber,
+	// ]);
 
 	// delete product after confirming
 	const handleDelete = (id) => {
@@ -140,15 +140,7 @@ const ProductListPage = ({ history, match }) => {
 											<td>{product._id}</td>
 											<td>{product.name}</td>
 											<td>
-												{product.price &&
-													product.price.toLocaleString(
-														'en-PK',
-														{
-															maximumFractionDigits: 2,
-															style: 'currency',
-															currency: 'PKR',
-														}
-													)}
+												ETH{product.price}
 											</td>
 											<td>{product.category}</td>
 											<td>{product.brand}</td>

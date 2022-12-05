@@ -18,7 +18,7 @@ import { addItem, removeItem } from '../actions/cartActions';
 const CartPage = ({ match, location, history }) => {
 	const [totalItems, setTotalItems] = useState(0);
 	const productID = match.params.id;
-	const qty = location.search ? Number(location.search.split('=')[1]) : 1; // fetch from the query string
+	const quantity = location.search ? Number(location.search.split('=')[1]) : 1; // fetch from the query string
 	const dispatch = useDispatch();
 
 	// get cart, userInfo and userdetails from redux store
@@ -43,7 +43,7 @@ const CartPage = ({ match, location, history }) => {
 	// store total items to local state
 	useEffect(() => {
 		if (cartItems) {
-			setTotalItems(cartItems.reduce((acc, item) => acc + item.qty, 0));
+			setTotalItems(cartItems.reduce((acc, item) => acc + item?.quantity, 0));
 		}
 	}, [cartItems]);
 
@@ -56,11 +56,11 @@ const CartPage = ({ match, location, history }) => {
 	}, [error, dispatch, userInfo]);
 
 	// add item to cart
-	useEffect(() => {
-		if (productID) {
-			dispatch(addItem(productID, qty));
-		}
-	}, [dispatch, productID, qty]);
+	// useEffect(() => {
+	// 	if (productID) {
+	// 		dispatch(addItem(productID, quantity));
+	// 	}
+	// }, [dispatch, productID, quantity]);
 
 	// remove item from cart
 	const handleRemoveFromCart = (id) => {
@@ -69,14 +69,14 @@ const CartPage = ({ match, location, history }) => {
 
 	// proceed to shipping address page, which is the next step in placing an order
 	const handleCheckout = (e) => {
-		history.push('/login?redirect=shipping');
+		history.push('/shipping');
 	};
 
 	return (
 		<Row>
 			<Meta title='My Cart | Kosells' />
 			<Col md={8}>
-				<h1>Shopping Cart.</h1>
+				<h1>Shopping Cart</h1>
 				{!cartItems.length ? (
 					<Message>
 						Your Cart is empty. <Link to='/'>Go Back.</Link>{' '}
@@ -84,7 +84,7 @@ const CartPage = ({ match, location, history }) => {
 				) : (
 					<ListGroup variant='flush'>
 						{cartItems.map((item) => (
-							<ListGroup.Item key={item.product}>
+							<ListGroup.Item key={item?.product}>
 								<Row
 									style={{
 										display: 'flex',
@@ -93,15 +93,15 @@ const CartPage = ({ match, location, history }) => {
 									<Col md={2}>
 										<Image
 											className='product-image'
-											src={item.image}
-											alt={item.name}
+											src={item?.imgUrl}
+											alt={item?.name}
 											fluid
 											rounded
 										/>
 									</Col>
 									<Col md={4}>
-										<Link to={`/product/${item.product}`}>
-											{item.name}
+										<Link to={`/product/${item?.product}`}>
+											{item?.name}
 										</Link>
 									</Col>
 									<Col
@@ -111,18 +111,14 @@ const CartPage = ({ match, location, history }) => {
 											alignItems: 'center',
 											justifyContent: 'space-evenly',
 										}}>
-										{item.price.toLocaleString('en-PK', {
-											maximumFractionDigits: 2,
-											style: 'currency',
-											currency: 'PKR',
-										})}
+										ETH{item?.price}
 
 										<div>
 											<i
 												style={{ fontSize: '0.7em' }}
 												className='fas fa-times'
 											/>{' '}
-											{item.qty}
+											{item?.quantity}
 										</div>
 									</Col>
 									{/* display this col only for larger screens */}
@@ -141,14 +137,14 @@ const CartPage = ({ match, location, history }) => {
 														'1px solid white',
 												}}
 												disabled={
-													item.qty >=
-													item.countInStock
+													item?.quantity >=
+													item?.countInStock
 												}
 												onClick={() => {
 													dispatch(
 														addItem(
-															item.product,
-															Number(item.qty + 1)
+															item?.product,
+															Number(item?.quantity + 1)
 														)
 													);
 												}}
@@ -162,12 +158,12 @@ const CartPage = ({ match, location, history }) => {
 														'1px solid white',
 												}}
 												variant='primary'
-												disabled={item.qty === 1}
+												disabled={item?.quantity === 1}
 												onClick={() => {
 													dispatch(
 														addItem(
-															item.product,
-															Number(item.qty - 1)
+															item?.product,
+															Number(item?.quantity - 1)
 														)
 													);
 												}}>
@@ -178,7 +174,7 @@ const CartPage = ({ match, location, history }) => {
 											type='button'
 											onClick={() =>
 												handleRemoveFromCart(
-													item.product
+													item?.product
 												)
 											}>
 											<i className='fas fa-trash' />
@@ -197,14 +193,7 @@ const CartPage = ({ match, location, history }) => {
 												fontSize: '1.2em',
 												width: '50%',
 											}}>
-											{item.price.toLocaleString(
-												'en-PK',
-												{
-													maximumFractionDigits: 2,
-													style: 'currency',
-													currency: 'PKR',
-												}
-											)}
+											ETH{item?.price}
 
 											<div className='ms-1'>
 												<i
@@ -213,7 +202,7 @@ const CartPage = ({ match, location, history }) => {
 													}}
 													className='fas fa-times'
 												/>{' '}
-												{item.qty}
+												{item?.quantity}
 											</div>
 										</div>
 
@@ -228,7 +217,7 @@ const CartPage = ({ match, location, history }) => {
 												type='button'
 												onClick={() =>
 													handleRemoveFromCart(
-														item.product
+														item?.id
 													)
 												}>
 												<i className='fas fa-trash' />
@@ -240,14 +229,15 @@ const CartPage = ({ match, location, history }) => {
 														'1px solid white',
 												}}
 												disabled={
-													item.qty >=
-													item.countInStock
+													item?.quantity >=
+													item?.countInStock
 												}
 												onClick={() => {
+													console.log('adding:', item,item.quantity)
 													dispatch(
 														addItem(
-															item.product,
-															Number(item.qty + 1)
+															item,
+															Number(item?.quantity + 1)
 														)
 													);
 												}}
@@ -261,12 +251,12 @@ const CartPage = ({ match, location, history }) => {
 														'1px solid white',
 												}}
 												variant='primary'
-												disabled={item.qty === 1}
+												disabled={item?.quantity === 1}
 												onClick={() => {
 													dispatch(
 														addItem(
-															item.product,
-															Number(item.qty - 1)
+															item,
+															Number(item?.quantity - 1)
 														)
 													);
 												}}>
@@ -289,17 +279,12 @@ const CartPage = ({ match, location, history }) => {
 								{totalItems > 1 && 's'}
 							</h2>
 							<strong>
-								{cartItems
+								ETH {cartItems
 									.reduce(
 										(acc, item) =>
-											acc + item.qty * item.price,
+											acc + item?.quantity * item?.price,
 										0
-									)
-									.toLocaleString('en-PK', {
-										maximumFractionDigits: 2,
-										style: 'currency',
-										currency: 'PKR',
-									})}
+									)}
 							</strong>
 						</ListGroup.Item>
 						<ListGroup.Item>

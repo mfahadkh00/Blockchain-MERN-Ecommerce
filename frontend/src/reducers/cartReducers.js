@@ -16,13 +16,13 @@ export const cartReducer = (
 
 			// check if the item exists in the cart
 			const existingItem = state.cartItems.find(
-				(ele) => ele.product === item.product
+				(ele) => ele.id === item.id
 			);
 			if (existingItem) {
 				return {
 					...state,
 					cartItems: state.cartItems.map((ele) =>
-						ele.product === existingItem.product ? item : ele
+						ele.id === existingItem.id ? item : ele
 					),
 				};
 			} else {
@@ -35,7 +35,7 @@ export const cartReducer = (
 			return {
 				...state,
 				cartItems: state.cartItems.filter(
-					(ele) => ele.product !== action.payload
+					(ele) => ele.id !== action.payload
 				),
 			};
 		case CART_SAVE_SHIPPING_ADDRESS:

@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <=0.8.17;
-
 pragma experimental ABIEncoderV2;
 
 contract Store {
     struct User {
         address id;
-        string username;
+        bytes32 email;
         string name;
         string billingAdd;
-        string password;
+        bytes32 password;
         uint256 orderCount;
+        bool isUser;
+        uint256 balance;
     }
 
     struct Product {
@@ -49,6 +50,7 @@ contract Store {
     // Mappings for handling product functionalities
     mapping(uint256 => Product) productList;
     mapping(uint256 => mapping(uint256 => Review)) reviewList;
+    // mapping(address => uint256) balances;
 
     uint256 productCount = 0;
 
@@ -66,50 +68,67 @@ contract Store {
             "Airpods Wireless Bluetooth Headphones",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
             "https://rebeltech.com/wp-content/uploads/2021/10/MME73.jpg",
-            14999,
+            1,
             20
         );
         addProduct(
             "iPhone 11 Pro 256GB Memory",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
             "https://images.priceoye.pk/apple-iphone-xi-pakistan-priceoye-oik1o-500x500.webp",
-            14999,
+            2,
             20
         );
         addProduct(
             "Cannon EOS 80D DSLR Camera",
             "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working",
-            "data:image",
-            14999,
+            "https://hashmiphotos.com/wp-content/uploads/2019/08/Canon-250D-DSLR-Camera.jpg",
+            4,
             20
         );
     }
 
     function addUser(
-        string memory _username,
+        string memory _email,
         string memory _name,
-        string memory _billingAdd,
-        string memory _password
+        string memory _password,
+        string memory _billingAdd
     ) public {
-        // require(
-        //     userList[msg.sender].id == msg.sender,
-        //     "Store: addUser - User already exists"
-        // );
+        require(
+            !userList[msg.sender].isUser,
+            "Store: addUser - User already exists"
+        );
 
         userList[msg.sender] = User(
             msg.sender,
-            _username,
+            keccak256(abi.encode(_email)),
             _name,
             _billingAdd,
-            _password,
+            keccak256(abi.encode(_password, msg.sender)),
+            0,
+            true,
             0
         );
 
-        emit UserAdded(msg.sender, _username);
+        emit UserAdded(msg.sender, _email);
     }
 
     function getUser() public view returns (User memory) {
         return userList[msg.sender];
+    }
+
+    function authenticateUser(string memory _email, string memory _password)
+        public
+        view
+        returns (bool)
+    {
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
+
+        return (userList[msg.sender].email == keccak256(abi.encode(_email)) &&
+            userList[msg.sender].password ==
+            keccak256(abi.encode(_password, msg.sender)));
     }
 
     function addProduct(
@@ -133,19 +152,24 @@ contract Store {
         emit ProductAdded(productCount, _name);
     }
 
-    function getProduct(uint256 prodID) public returns (Product memory) {
-        emit ProductReturned(prodID, productList[prodID].name);
+    function getProduct(uint256 prodID) public view returns (Product memory) {
+        require(
+            prodID >= 0 && prodID <= productCount,
+            "Store: getProduct - Invalid product ID"
+        );
+
+        // emit ProductReturned(prodID, productList[prodID].name);
         return productList[prodID];
     }
 
-    function getProductList() public returns (Product[] memory) {
+    function getProductList() public view returns (Product[] memory) {
         Product[] memory _products = new Product[](productCount);
 
         for (uint256 i = 0; i < productCount; i++) {
             _products[i] = productList[i];
         }
 
-        emit ProductsReturned(_products);
+        // emit ProductsReturned(_products);
         return _products;
     }
 
@@ -154,25 +178,25 @@ contract Store {
         uint256 _rating,
         string memory _review
     ) public {
-        // require(
-        //     userList[msg.sender].id == address(0),
-        //     "Store: addReview - User does not exist"
-        // );
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
 
-        // require(
-        //     _rating < 0 || _rating > 5,
-        //     "Store: addReview - Rating should be between 0 and 5"
-        // );
+        require(
+            _rating > 0 && _rating < 6,
+            "Store: addReview - Rating should be between 1 and 5"
+        );
 
-        // require(
-        //     _productId < 0 || _productId > productCount,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: addReview - Product does not exist"
+        );
 
-        // require(
-        //     productList[_productId].id != _productId,
-        //     "Store: addReview - Product does not exist"
-        // );
+        require(
+            productList[_productId].id == _productId,
+            "Store: addReview - Product does not exist"
+        );
 
         reviewList[_productId][productList[_productId].reviewCount] = Review(
             msg.sender,
@@ -189,7 +213,16 @@ contract Store {
         );
     }
 
-    function getReviews(uint256 _productId) public returns (Review[] memory) {
+    function getReviews(uint256 _productId)
+        public
+        view
+        returns (Review[] memory)
+    {
+        require(
+            _productId >= 0 && _productId <= productCount,
+            "Store: getReviews - Product does not exist"
+        );
+
         Review[] memory reviews = new Review[](
             productList[_productId].reviewCount
         );
@@ -198,40 +231,52 @@ contract Store {
             reviews[i] = reviewList[_productId][i];
         }
 
-        emit ReviewsReturned(reviews);
+        // emit ReviewsReturned(reviews);
         return reviews;
     }
 
     function addOrder(
         OrderProduct[] memory _products,
         string memory _shippingDet
-    ) public {
+    ) public payable {
+        require(
+            userList[msg.sender].isUser,
+            "Store: authenticateUser - User does not exist"
+        );
+
         // require(
-        //     userList[msg.sender].id == address(0),
-        //     "Store: addOrder - User does not exist"
+        //     msg.value > msg.sender.balance,
+        //     "Store: addOrder - Insufficient funds in wallet"
         // );
 
+        for (uint256 i = 0; i < _products.length; i++) {
+            require(
+                _products[i].id >= 0 && _products[i].id <= productCount,
+                "Store: addOrder - Product does not exist"
+            );
+
+            require(
+                productList[_products[i].id].id == _products[i].id,
+                "Store: addOrder - Product does not exist"
+            );
+
+            require(
+                productList[_products[i].id].quantity > 0,
+                "Store: addOrder - Product out of stock"
+            );
+
+            require(
+                _products[i].quantity > 0,
+                "Store: addOrder - Invalid quantity"
+            );
+        }
+
+        uint256 eth = 10**18;
         uint256 total = 0;
-        // for (uint256 i = 0; i < _products.length; i++) {
-        //     require(
-        //         _products[i].id < 0 || _products[i].id > productCount,
-        //         "Store: addOrder - Product does not exist"
-        //     );
-
-        //     require(
-        //         productList[_products[i].id].id != _products[i].id,
-        //         "Store: addOrder - Product does not exist"
-        //     );
-
-        //     require(
-        //         productList[_products[i].quantity].quantity == 0,
-        //         "Store: addOrder - Product out of stock"
-        //     );
-        // }
 
         for (uint256 i = 0; i < _products.length; i++) {
             productList[_products[i].id].quantity -= _products[i].quantity;
-            total += productList[_products[i].id].price;
+            total += (productList[_products[i].id].price * eth);
 
             orderProductList[msg.sender][userList[msg.sender].orderCount][
                 i
@@ -246,6 +291,8 @@ contract Store {
             );
         }
 
+        // require(msg.value >= total, "Store: addOrder - Insufficient funds");
+
         orderList[msg.sender][userList[msg.sender].orderCount] = Order(
             userList[msg.sender].orderCount,
             total,
@@ -253,23 +300,27 @@ contract Store {
             _products.length
         );
 
-        userList[msg.sender].orderCount++;
-
         emit OrderPlaced(
             msg.sender,
-            userList[msg.sender].orderCount - 1,
-            total
+            userList[msg.sender].orderCount,
+            address(this).balance
         );
+
+        userList[msg.sender].orderCount++;
     }
 
-    function getOrders() public returns (Order[] memory) {
+    function getOrders() public view returns (Order[] memory) {
         Order[] memory _orders = new Order[](userList[msg.sender].orderCount);
 
         for (uint256 i = 0; i < userList[msg.sender].orderCount; i++) {
             _orders[i] = orderList[msg.sender][i];
         }
 
-        emit OrdersReturned(_orders);
+        // emit OrdersReturned(_orders);
         return _orders;
+    }
+
+    function getOrder(uint256 _orderID) public view returns (Order memory) {
+        return orderList[msg.sender][_orderID];
     }
 }
